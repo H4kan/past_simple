@@ -1,4 +1,5 @@
 import configparser
+import translation
 
 
 def read_configuration():
@@ -24,6 +25,9 @@ def get_data(configuration):
     enDataFile.close()
     plDataFile.close()
 
+    if (len(enData) != len(plData)):
+        raise Exception("EnData length is not equal to plData length.")
+
     enDataList = [item.split() for item in enData]
     plDataList = [item.split() for item in plData]
 
@@ -33,7 +37,20 @@ def get_data(configuration):
     }
 
 
+def run(data):
+    plText = data["plData"]
+    enText = data["enData"]
+    probs = translation.Probs(plText, enText)
+
+    bestAlignments = {idx: [] for idx in range(0, len(plText))}
+
+    translation.computeAlignments(plText, enText, probs, bestAlignments)
+
+    translation.computeProbsFromAlignments(
+        plText, enText, probs, bestAlignments)
+
+
 if __name__ == '__main__':
     configuration = read_configuration()
-
     data = get_data(configuration)
+    run(data)
