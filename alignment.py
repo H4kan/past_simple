@@ -30,10 +30,22 @@ def generateSeqPartial(lst, n):
         res += [actualRes];
     return res;
 
-lst = [1, 2, 3, 4, 5];
-
 def generateAlignments(enSent, plSent):
     alignments = [];
     for permutation in itertools.permutations(list(range(0, len(enSent)))):
-        alignments += generateSeqPartial(list(permutation), len(plSent));
+        alignments += generateSeqPartial(list(permutation), len(plSent) + 1);
     return alignments;
+
+
+# lst = [1, 2, 3, 4, 5];
+
+# print(generateSeqPartial(lst, 5));
+
+
+# plWords = ["Ala", "ma", "kota", "i", "pieska", "tez"];
+# enWords = ["Ala", "has", "cat", "and", "dog", "as", "well"];
+
+# algs = generateAlignments(enWords, plWords);
+
+# print(algs[0]);
+
