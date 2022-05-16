@@ -11,9 +11,12 @@ def sentProb(plSent, enSent, alignment, probs):
     for i in range(0, len(plSent)):
         n_i = len(alignment[i + 1]);
         res *= probs.fert[plSent[i]][n_i];
-        for j in range(0, n_i):
-            res *= probs.trans[plSent[i]][enSent[alignment[i + 1][j]]];
-            res *= probs.dist[len(enSent)][alignment[i + 1][j]][i];
+        if (n_i > 0):
+            for j in range(0, n_i):
+                res *= probs.trans[plSent[i]][enSent[alignment[i + 1][j]]];
+                res *= probs.dist[len(enSent)][alignment[i + 1][j]][i];
+        else:
+            res *= probs.trans[plSent[i]]["\0"];
     res *= probs.fert["\0"][len(alignment[0])];
     for i in range(0, len(alignment[0])):
         res *= probs.trans["\0"][enSent[alignment[0][i]]];
@@ -21,6 +24,7 @@ def sentProb(plSent, enSent, alignment, probs):
     return res;
 
 def getBestAlignment(plSent, enSent, probs):
+
     algs = alignment.generateAlignments(plSent, enSent);
     maxProb = 0;
     currProb = 0;
@@ -59,7 +63,7 @@ def computeDistFromAlignments(plText, enText, probs, bestAlignments):
         for wordIdx, plWord in enumerate(plSent):
             if len(bestAlignments[idx][wordIdx + 1]) > 0:
                 for enIdx in bestAlignments[idx][wordIdx + 1]:
-                        distCounter[len(enText[idx])][enIdx][wordIdx + 1] += 1;
+                        distCounter[len(enText[idx])][enIdx][wordIdx] += 1;
                         generalCounter[len(enText[idx])][enIdx] += 1;
     
     for sentLen in range(1, constraints.MAX_EN_LEN + 1):
