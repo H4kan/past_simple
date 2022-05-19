@@ -1,4 +1,5 @@
 # Parallel corpora files
+*.txt
 *.data
 !*.test.data
 
