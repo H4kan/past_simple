@@ -1,0 +1,6 @@
+.backgroundsemi{
+    width: fit-content;
+    border-radius: 15px;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 7px;
+}
