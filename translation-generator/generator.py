@@ -5,9 +5,12 @@ TODO:
 """
 
 
+from queue import PriorityQueue
 from random import randint
 from hypothesis import Hypothesis
-from utils import initialize_priority_queues, phrase_lower
+from utils import *
+
+MAX_SIZE = 3
 
 
 # Available translations to English taken from translation module
@@ -29,13 +32,13 @@ def generate_new_hypothesis(curr_hypothesis, translation, indices):
     newWords = curr_hypothesis.words.copy()
     newWords.append(translation)
 
-    newMatching = curr_hypothesis.matching.copy()
-    newMatching.append(indices)
+    newAlignment = curr_hypothesis.alignment.copy()
+    newAlignment.append(indices)
 
     # real score is calculated from equation: pr(P) * pr(E | P)
     score = randint(0, 420)
 
-    return Hypothesis(newWords, score, newMatching, curr_hypothesis.textLength)
+    return Hypothesis(newWords, score, newAlignment, curr_hypothesis.textLength)
 
 
 def apply_translation_options(curr_hypothesis, indices, priority_queues, priority_queue_index):
@@ -51,8 +54,31 @@ def apply_translation_options(curr_hypothesis, indices, priority_queues, priorit
         if priority_queue_index + len(indices) >= len(priority_queues):
             return
 
-        priority_queues[priority_queue_index +
-                        len(indices)].put(new_hypothesis)
+        currentQueue = priority_queues[priority_queue_index +
+                                       len(indices)]
+
+        currentQueue.put(new_hypothesis)
+
+        # recombine
+        elements = queue_to_array(currentQueue)
+        removedIndices = []
+        for i in range(len(elements)):
+            for j in range(len(elements)):
+                if (i != j and hypothesis_equals(elements[i], elements[j])):
+                    if elements[i].score > elements[j].score:
+                        removedIndices.append(i)
+                    else:
+                        removedIndices.append(j)
+
+        for i in removedIndices:
+            elements.remove(elements[i])  # remove with worse score
+
+        if len(elements) == MAX_SIZE:
+            # find worst h
+            elements.remove(min(elements))
+
+        for e in elements:
+            currentQueue.put(e)
 
 
 def process_priority_queue(priority_queues, priority_queue_index):
@@ -63,7 +89,7 @@ def process_priority_queue(priority_queues, priority_queue_index):
         curr_hypothesis = priority_queues[priority_queue_index].get()
 
         indices = []  # all translated indices
-        for match in curr_hypothesis.matching:
+        for match in curr_hypothesis.alignment:
             indices += [item for item in match]
         indices.sort()
 
@@ -95,18 +121,18 @@ def process_priority_queue(priority_queues, priority_queue_index):
 
 if __name__ == '__main__':
     # Example sentence in German
-    de = ["er", "geht"]  # , "ja", "nicht", "nach", "hause"]
+    de = ["er", "geht", "ja", "nicht", "nach", "hause"]
     deLength = len(de)
 
-    priority_queues = initialize_priority_queues(deLength)
-
     # Put empty hypothesis with score = 0
+    priority_queues = initialize_priority_queues(deLength, MAX_SIZE)
     priority_queues[0].put(Hypothesis([], 0, [], deLength))
 
     for i in range(0, len(priority_queues) - 1):
         process_priority_queue(priority_queues, i)
 
     result = priority_queues[deLength].get()
+
     print(result.words)
     print(result.score)
-    print(result.matching)
+    print(result.alignment)
