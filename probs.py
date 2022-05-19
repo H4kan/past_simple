@@ -32,5 +32,13 @@ class Probs:
                 self.trans[plWord]["\0"] += ratio
 
     def toJSON(self):
+        self.trans = self.trans
+        for key, value in self.trans.items():
+            transCopy = self.trans[key].copy()
+            for key2, value2 in self.trans[key].items():
+                if value2 == 0:
+                    transCopy.pop(key2)
+            self.trans[key] = transCopy
+                    
         return json.dumps(self, default=lambda o: o.__dict__,
                           sort_keys=True, indent=4)

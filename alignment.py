@@ -30,10 +30,36 @@ def generateSeqPartial(lst, n):
         res += [actualRes];
     return res;
 
-def generateAlignments(enSent, plSent):
+def generateAlignments(plSent, enSent):
+    
+  
+    
     alignments = [];
+    res = []
+ 
+    res += [[]]
+    
+    for i in range(len(plSent)):
+        a = []
+        if (i < len(enSent)):
+            a.append([i])
+            res += a
+        else:
+            res += [[]]
+        
+
+ 
+    
+    return [ res ]
+    i = 0
     for permutation in itertools.permutations(list(range(0, len(enSent)))):
+        # if i == 2:
+        #     print(alignments)
+        
         alignments += generateSeqPartial(list(permutation), len(plSent) + 1);
+        # i += 1
+        
+  
     return alignments;
 
 

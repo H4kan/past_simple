@@ -29,16 +29,20 @@ def getBestAlignment(plSent, enSent, probs):
     maxProb = 0;
     currProb = 0;
     maxIdx = -1;
+
     for idx, alg in enumerate(algs):
+     
         currProb = sentProb(plSent, enSent, alg, probs);
         if (currProb > maxProb):
             maxProb = currProb;
             maxIdx = idx;
+
     return algs[maxIdx];
 
 def computeAlignments(plText, enText, probs, bestAlignments):
     for idx, plSent in enumerate(plText):
         bestAlignments[idx] = getBestAlignment(plSent, enText[idx], probs);
+    
 
 
 def computeFertFromAlignments(plText, enText, probs, bestAlignments):
