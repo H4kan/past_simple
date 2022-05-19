@@ -1,3 +1,5 @@
+probs.json
+
 # Parallel corpora files
 *.txt
 *.data
