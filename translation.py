@@ -20,11 +20,9 @@ enWords = ["Ala", "has", "cat", "and", "dog", "as", "well"]
 
 algs = alignment.generateAlignments(enWords, plWords)
 
-if __name__ == '__main__':
-    plText = [["Ala", "ma"]]
-    enText = [["Ala"]]
+bestAlignments = {idx: [] for idx in range(0, len(plText))}
 
-maxSteps = 100
+maxSteps = 5
 
 prevBestProb = 0
 prevRatio = -1
@@ -49,9 +47,9 @@ for i in range(0, maxSteps):
     prevRatio = prevBestProb / currBestProb
     prevBestProb = currBestProb
 
-    print(probs.fert)
+f = open("probs.json", "w")
+f.write(probs.toJSON())
+f.close()
 
-with open("probs.json", "w") as write:
-    json.dump(probs, write)
-    
+
 # after many iterations, function sentProb() will be calculating desired probability

@@ -1,9 +1,10 @@
-import configparser
-import translation
+from configparser import *
+from probs import Probs
+import algorithm
 
 
 def read_configuration():
-    Config = configparser.ConfigParser()
+    Config = ConfigParser()
     Config.read("config.ini")
 
     enDataPath = Config.get('TranslationModule', 'EnData')
@@ -40,17 +41,43 @@ def get_data(configuration):
 def run(data):
     plText = data["plData"]
     enText = data["enData"]
-    probs = translation.Probs(plText, enText)
+    probs = Probs(plText, enText)
 
     bestAlignments = {idx: [] for idx in range(0, len(plText))}
 
-    translation.computeAlignments(plText, enText, probs, bestAlignments)
+    maxSteps = 5
 
-    translation.computeProbsFromAlignments(
-        plText, enText, probs, bestAlignments)
+    prevBestProb = 0
+    prevRatio = -1
+
+    # this two functions need to be run in loop until some condition is met
+
+    for i in range(0, maxSteps):
+
+        algorithm.computeAlignments(plText, enText, probs, bestAlignments)
+
+        algorithm.computeProbsFromAlignments(
+            plText, enText, probs, bestAlignments)
+
+    #     # convergence condition, not sure how to formulate it best way
+        currBestProb = 0
+        for idx in range(0, len(plText)):
+            currBestProb = max(currBestProb, algorithm.sentProb(
+                plText[idx], enText[idx], bestAlignments[idx], probs))
+
+        if currBestProb > 0 and abs(prevBestProb / currBestProb - prevRatio) < 1e-5:
+            break
+
+        prevRatio = prevBestProb / currBestProb
+        prevBestProb = currBestProb
+    return probs
 
 
 if __name__ == '__main__':
     configuration = read_configuration()
     data = get_data(configuration)
-    run(data)
+    probs = run(data)
+
+    f = open("probs.json", "w")
+    f.write(probs.toJSON())
+    f.close()
