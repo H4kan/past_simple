@@ -1,10 +1,3 @@
-"""
-TODO:
-    [] recombination
-    [] queues pruning
-"""
-
-
 from queue import PriorityQueue
 from random import randint
 from hypothesis import Hypothesis
@@ -12,20 +5,32 @@ from utils import *
 
 MAX_SIZE = 3
 
-
 # Available translations to English taken from translation module
 translation_options = {
-    ("er",): [("he",), ("it",)],
-    ("geht",): [("is",), ("are",), ("goes",), ("go",)],
-    ("ja",): [("yes",), ("is",)],
-    ("nicht",): [("not",), ("do", "not"), ("does", "not"), ("is", "not")],
-    ("nach",): [("after",), ("to",), ("in",)],
-    ("hause",): [("house",), ("home",)],
-    ("er", "geht"): [("it", "is")],
-    ("ja", "nicht"): [("does", "not"), ("is", "not")],
-    ("nach", "house"): [("home",)],
-    ("geht", "ja", "nicht"): [("is", "not")]
+    "er": ["he", "it"],
+    "geht": ["is", "are", "goes", "go"],
+    "ja": ["yes", "is"],
+    "nicht": ["not", "not"],
+    "nach": ["after", "to", "in"],
+    "hause": ["house", "home"],
 }
+
+polish_words = []
+
+
+def getProb(polish_word, english_word):
+    return 0.5
+
+
+def get_best_single_translations(eng):
+    bestProbs = []
+    for word in polish_words:
+        min_best_probs = min(bestProbs)
+        new_prob = getProb(word, eng)
+        if new_prob > min_best_probs:
+            bestProbs.remove(min_best_probs)
+            bestProbs.append(new_prob)
+    return bestProbs
 
 
 def generate_new_hypothesis(curr_hypothesis, translation, indices):
@@ -41,21 +46,19 @@ def generate_new_hypothesis(curr_hypothesis, translation, indices):
     return Hypothesis(newWords, score, newAlignment, curr_hypothesis.textLength)
 
 
-def apply_translation_options(curr_hypothesis, indices, priority_queues, priority_queue_index):
-    phrase = phrase_lower([de[x] for x in indices])
-
+def apply_translation_options(curr_hypothesis, index, priority_queues, priority_queue_index):
+    phrase = de[index]
     if phrase not in translation_options:
         return
 
     for translation in translation_options[phrase]:
         new_hypothesis = generate_new_hypothesis(
-            curr_hypothesis, translation, indices)
+            curr_hypothesis, translation, index)
 
-        if priority_queue_index + len(indices) >= len(priority_queues):
+        if priority_queue_index + 1 >= len(priority_queues):
             return
 
-        currentQueue = priority_queues[priority_queue_index +
-                                       len(indices)]
+        currentQueue = priority_queues[priority_queue_index + 1]
 
         currentQueue.put(new_hypothesis)
 
@@ -88,9 +91,8 @@ def process_priority_queue(priority_queues, priority_queue_index):
         print("Size: " + str(priority_queues[priority_queue_index].qsize()))
         curr_hypothesis = priority_queues[priority_queue_index].get()
 
-        indices = []  # all translated indices
-        for match in curr_hypothesis.alignment:
-            indices += [item for item in match]
+        indices = curr_hypothesis.alignment  # all translated indices
+
         indices.sort()
 
         # Aktualna hipoteza: *____
@@ -104,19 +106,10 @@ def process_priority_queue(priority_queues, priority_queue_index):
         # dopasowujemy translation options skladajace sie z dwoch wyrazow
         counter = 0
         for i in range(0, curr_hypothesis.textLength):
-            if i not in indices and counter < 3:
-                counter += 1
-                # pojedyncze slowa
-                next_index = (i,)
+            if i not in indices:
+                next_index = i
                 apply_translation_options(
                     curr_hypothesis, next_index, priority_queues, priority_queue_index)
-
-                # podwojne wyrazenia
-                for k in range(0, 2):
-                    if (i + k + 1 < curr_hypothesis.textLength) and (not i + k in indices) and (not i + k + 1 in indices):
-                        next_index = (i + k, i + k + 1)
-                        apply_translation_options(
-                            curr_hypothesis, next_index, priority_queues, priority_queue_index)
 
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@ import constraints
 from utils import *
 from probs import Probs
 import algorithm
+import json
 
 
 plText = [["Ala", "ma", "kota", "i", "pieska", "tez"],
@@ -50,4 +51,7 @@ for i in range(0, maxSteps):
 
     print(probs.fert)
 
+with open("probs.json", "w") as write:
+    json.dump(probs, write)
+    
 # after many iterations, function sentProb() will be calculating desired probability
