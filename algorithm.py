@@ -18,11 +18,11 @@ def sentProb(plSent, enSent, alignment, probs):
                 if (enSent[alignment[i + 1][j]] in probs.trans[plSent[i]]):
                     res *= probs.trans[plSent[i]][enSent[alignment[i + 1][j]]]
                 else:
-                    res *= 1
+                    res *= 0.01
                 if (alignment[i + 1][j] in probs.dist[str(len(enSent))]):
                     res *= probs.dist[len(enSent)][alignment[i + 1][j]][i]
                 else:
-                    res *= 1
+                    res *= 0.1
         else:
             res *= probs.trans[plSent[i]]["\0"]
     res *= probs.fert["\0"][len(alignment[0])]

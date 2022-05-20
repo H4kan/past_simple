@@ -58,7 +58,7 @@ def pairLangProb(w1, w2, lang: Lang):
         if(w2 in lang.doubles[w1]):
             return lang.doubles[w1][w2] / (sum(lang.doubles[w1].values(), 0))
         else:
-            return 1/lang.singles[w1]
+            return 1/(sum(lang.doubles[w1].values(), 0))
     else:
         return 1/lang.singCount
 

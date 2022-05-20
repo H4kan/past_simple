@@ -6,8 +6,8 @@ from language import *
 from decode_utils import *
 import json
 
-MAX_QUEUE_SIZE = 3
-MAX_SINGLE_TRANSLATION = 3
+MAX_QUEUE_SIZE = 20
+MAX_SINGLE_TRANSLATION = 5
 
 
 # Available translations to English taken from translation module
@@ -24,6 +24,8 @@ MAX_SINGLE_TRANSLATION = 3
 def generateAlignments(plSent, enSent):
     res = []
     res += [[]]
+    
+    
     for i in range(len(plSent)):
         a = []
         if (i < len(enSent)):
@@ -40,15 +42,20 @@ def generate_new_hypothesis(curr_hypothesis, translation, indices):
 
     newAlignment = curr_hypothesis.alignment.copy()
     newAlignment.append(indices)
+    
+    
+    X = newWords
+    Y = newAlignment
+
+    newWordtoLang = [x for _,x in sorted(zip(Y,X))]
 
     # real score is calculated from equation: pr(P) * pr(E | P)
-    al = generateAlignments(newWords, en)
+    al = generateAlignments(newWordtoLang, en)
     enSlice = en[0:len(newWords)]
 
-    score = sentProb(newWords, enSlice, al, probs) * \
-        sentLangProb(newWords, langs)
-    if (newWords[0] == "jestem"):
-        print("")
+    score = sentProb(newWords, enSlice, al, probs)     * \
+        sentLangProb(newWordtoLang, langs)**0.7
+
     return Hypothesis(newWords, score, newAlignment, curr_hypothesis.textLength)
 
 
@@ -60,14 +67,19 @@ def apply_translation_options(curr_hypothesis, index, priority_queues, priority_
     for translation in translation_options[phrase]:
         new_hypothesis = generate_new_hypothesis(
             curr_hypothesis, translation, index)
+        
+        # if (new_hypothesis.score == 1):
+        #     continue
 
         if priority_queue_index + 1 >= len(priority_queues):
             return
-        if priority_queue_index == 2:
-            print("")
+     
 
         currentQueue = priority_queues[priority_queue_index + 1]
-
+        
+        # if (priority_queue_index == 2):
+        #     for h in currentQueue.queue:
+        #         print(str(h))
         currentQueue.put(new_hypothesis)
 
         # recombine
@@ -95,8 +107,8 @@ def apply_translation_options(curr_hypothesis, index, priority_queues, priority_
 def process_priority_queue(priority_queues, priority_queue_index):
     # foreach hypothesis on priority queue
     while not priority_queues[priority_queue_index].empty():
-        print("Priority queue index: " + str(priority_queue_index))
-        print("Size: " + str(priority_queues[priority_queue_index].qsize()))
+        # print("Priority queue index: " + str(priority_queue_index))
+        # print("Size: " + str(priority_queues[priority_queue_index].qsize()))
         curr_hypothesis = priority_queues[priority_queue_index].get()
 
         indices = curr_hypothesis.alignment  # all translated indices
@@ -171,7 +183,7 @@ if __name__ == '__main__':
                   probsJSON["trans"])
     translation_options = generate_translation_options()
     # Example sentence in German
-    en = ["he", "very", "good", "\x00"]
+    en = ["european", "parliament", "thinks", "that", "climate", "change", "are", "dangerous", "and", "very", "important", "\x00" ]
     enLength = len(en) - 1
 
     # Put empty hypothesis with score = 0
@@ -182,7 +194,12 @@ if __name__ == '__main__':
         process_priority_queue(priority_queues, i)
 
     result = priority_queues[enLength].get()
+    
+    X = result.words
+    Y = result.alignment
 
-    print(result.words)
+    res = [x for _,x in sorted(zip(Y,X))]
+
+    print(res)
     print(result.score)
-    print(result.alignment)
+    
