@@ -1,9 +1,11 @@
+
 import configparser
 import translation
 
 
 def read_configuration():
     Config = configparser.ConfigParser()
+    
     Config.read("config.ini")
 
     enDataPath = Config.get('TranslationModule', 'EnData')
@@ -40,6 +42,7 @@ def get_data(configuration):
 def run(data):
     plText = data["plData"]
     enText = data["enData"]
+
     probs = translation.Probs(plText, enText)
 
     bestAlignments = {idx: [] for idx in range(0, len(plText))}
@@ -50,7 +53,14 @@ def run(data):
         plText, enText, probs, bestAlignments)
 
 
+
 if __name__ == '__main__':
     configuration = read_configuration()
     data = get_data(configuration)
-    run(data)
+
+    probs = run(data)
+
+    f = open("probs.json", "w")
+    f.write(probs.toJSON())
+    f.close()
+

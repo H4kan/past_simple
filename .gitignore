@@ -1,5 +1,9 @@
+probs.json
+
 # Parallel corpora files
+*.txt
 *.data
+!*.test.data
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

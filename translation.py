@@ -4,89 +4,50 @@ import alignment
 import constraints
 from utils import *
 from probs import Probs
-
-# flattenPl = flatten(plText);
-# wordsInPl = unique(flattenPl);
-# wordsInEn = unique(flatten(enText));
-# lenPl = len(flattenPl);
+import algorithm
+import json
 
 
-def sentProb(plSent, enSent, alignment, probs):
-    res = 1
-    for i in range(0, len(plSent)):
-        n_i = len(alignment[i + 1])
-        if (n_i > 0):
-            res *= probs.fert[plSent[i]][n_i]
-            for j in range(0, n_i):
-                res *= probs.trans[plSent[i]][enSent[alignment[i + 1][j]]]
-                res *= probs.dist[len(enSent)][alignment[i + 1][j]][i]
-    return res
+plText = [["Ala", "ma", "kota", "i", "pieska", "tez"],
+          ["Benek", "ma", "pieska", "i", "chomika", "tez"], ]
+enText = [["Ala", "has", "cat", "and", "dog", "as", "well"],
+          ["Benek", "has", "dog", "and", "hamster", "as", "well"]]
 
+probs = Probs(plText, enText)
 
-def getBestAlignment(plSent, enSent, probs):
-    algs = alignment.generateAlignments(plSent, enSent)
-    maxProb = 0
-    currProb = 0
-    maxIdx = -1
-    for idx, alg in enumerate(algs):
-        currProb = sentProb(plSent, enSent, alg, probs)
-        if (currProb > maxProb):
-            maxProb = currProb
-            maxIdx = idx
-    return algs[maxIdx]
+plWords = ["Ala", "ma", "kota", "i", "pieska", "tez"]
+enWords = ["Ala", "has", "cat", "and", "dog", "as", "well"]
 
+algs = alignment.generateAlignments(enWords, plWords)
 
-def computeAlignments(plText, enText, probs, bestAlignments):
-    for idx, plSent in enumerate(plText):
-        bestAlignments[idx] = getBestAlignment(plSent, enText[idx], probs)
+bestAlignments = {idx: [] for idx in range(0, len(plText))}
 
+maxSteps = 5
 
-def computeFertFromAlignments(plText, enText, probs, bestAlignments):
+prevBestProb = 0
+prevRatio = -1
 
-    fertCounters = {w: [0, 0, 0, 0, 0, 0] for w in (probs.allPlWords + ["\0"])}
-    for idx, plSent in enumerate(plText):
-        for wordIdx, plWord in enumerate(plSent):
-            fertCounters[plWord][len(bestAlignments[idx][wordIdx + 1])] += 1
-        fertCounters["\0"][len(bestAlignments[idx][0])] += 1
+# this two functions need to be run in loop until some condition is met
 
-    for word, fertProb in enumerate(probs.fert):
-        countersSum = sum(fertCounters[fertProb])
-        for idx, f in enumerate(probs.fert[fertProb]):
-            probs.fert[fertProb][idx] = fertCounters[fertProb][idx] / countersSum
+for i in range(0, maxSteps):
 
+    algorithm.computeAlignments(plText, enText, probs, bestAlignments)
 
-def computeDistFromAlignments(plText, enText, probs, bestAlignments):
-    return 0
+    algorithm.computeProbsFromAlignments(plText, enText, probs, bestAlignments)
 
+    # convergence condition, not sure how to formulate it best way
+    currBestProb = 0
+    for idx in range(0, len(plText)):
+        currBestProb = max(currBestProb, algorithm.sentProb(
+            plText[idx], enText[idx], bestAlignments[idx], probs))
 
-def computeTransFromAlignments(plText, enText, probs, bestAlignments):
-    return 0
+    if currBestProb > 0 and abs(prevBestProb / currBestProb - prevRatio) < 1e-5:
+        break
 
+    prevRatio = prevBestProb / currBestProb
+    prevBestProb = currBestProb
 
-def computeProbsFromAlignments(plText, enText, probs, bestAlignments):
-    computeFertFromAlignments(plText, enText, probs, bestAlignments)
-    computeDistFromAlignments(plText, enText, probs, bestAlignments)
-    computeTransFromAlignments(plText, enText, probs, bestAlignments)
+f = open("probs.json", "w")
+f.write(probs.toJSON())
+f.close()
 
-
-if __name__ == '__main__':
-    plText = [["Ala", "ma"]]
-    enText = [["Ala"]]
-
-    probs = Probs(plText, enText)
-
-    plWords = ["Ala", "ma", "kota", "i", "pieska", "tez"]
-    enWords = ["Ala", "has", "cat", "and", "dog", "as", "well"]
-
-    algs = alignment.generateAlignments(plWords, enWords)
-
-    bestAlignments = {idx: [] for idx in range(0, len(plText))}
-
-    print(probs.fert)
-
-    computeAlignments(plText, enText, probs, bestAlignments)
-
-    computeProbsFromAlignments(plText, enText, probs, bestAlignments)
-
-    print(probs.fert)
-    # print(bestAlignments);
