@@ -4,9 +4,14 @@ from utils import *;
 
 # jeszcze k ciagow, jestesmy na p tym znaku w wejsciowym
 def recurSeqPartial(lst, n, k, p, res, currSerie):
+    # if len(currSerie) > 0 and (
+    #     (currSerie[len(currSerie) - 1] > 0 and lst[currSerie[len(currSerie) - 1] - 1] > len(currSerie) + 1 + constraints.MAX_SHIFT_PROD) or 
+    #     (len(currSerie) > 1 and currSerie[len(currSerie) - 2] < len(lst) and lst[currSerie[len(currSerie) - 2]] < len(currSerie) - 2 - constraints.MAX_SHIFT_PROD)):
+    #     return;
     if k == 1:
+        currSerie = currSerie + [n];
         if isAscending(lst[p:n]) and p + constraints.MAX_GEN_WORD >= n:
-            res.append(currSerie + [n]);
+            res.append(currSerie);
         return;
     recurSeqPartial(lst, n, k - 1, p, res, currSerie + [p]);
     if p < n:
@@ -31,34 +36,18 @@ def generateSeqPartial(lst, n):
     return res;
 
 def generateAlignments(plSent, enSent):
-    
-  
-    
+        
     alignments = [];
-    res = []
- 
-    res += [[]]
-    
-    for i in range(len(plSent)):
-        a = []
-        if (i < len(enSent)):
-            a.append([i])
-            res += a
-        else:
-            res += [[]]
-        
 
- 
-    
-    return [ res ]
-    i = 0
     for permutation in itertools.permutations(list(range(0, len(enSent)))):
-        # if i == 2:
-        #     print(alignments)
-        
-        alignments += generateSeqPartial(list(permutation), len(plSent) + 1);
-        # i += 1
-        
+        l = list(permutation);
+        cond = True;
+        for i in range(0, len(enSent)):
+            if abs(i - l[i]) > constraints.MAX_SHIFT_PROD:
+                cond = False;
+                break;
+        if cond:        
+            alignments += generateSeqPartial(l, len(plSent) + 1);    
   
     return alignments;
 
@@ -68,10 +57,17 @@ def generateAlignments(plSent, enSent):
 # print(generateSeqPartial(lst, 5));
 
 
-# plWords = ["Ala", "ma", "kota", "i", "pieska", "tez"];
-# enWords = ["Ala", "has", "cat", "and", "dog", "as", "well"];
+plWords = ["Ala", "ma", "kota", "i", "pieska", "tez"];
+enWords = ["Ala", "has", "cat", "and", "dog", "as", "well"];
 
-# algs = generateAlignments(enWords, plWords);
+algs = generateAlignments(enWords, plWords);
 
-# print(algs[0]);
+# for i in algs:
+#     # if i[0] == 0 and i[1] == 1:
+#     print(i)
+# print(algs);
+print(algs[0]);
+# print(algs[len(algs) - 1]);
+# print(algs);
+print(len(algs));
 
