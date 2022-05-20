@@ -35,7 +35,7 @@ for i in range(0, maxSteps):
 
     algorithm.computeProbsFromAlignments(plText, enText, probs, bestAlignments)
 
-#     # convergence condition, not sure how to formulate it best way
+    # convergence condition, not sure how to formulate it best way
     currBestProb = 0
     for idx in range(0, len(plText)):
         currBestProb = max(currBestProb, algorithm.sentProb(
@@ -51,5 +51,3 @@ f = open("probs.json", "w")
 f.write(probs.toJSON())
 f.close()
 
-
-# after many iterations, function sentProb() will be calculating desired probability
