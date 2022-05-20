@@ -5,7 +5,7 @@ import language
 def read_configuration():
     Config = configparser.ConfigParser()
 
-    Config.read("past_simple/config.ini")
+    Config.read("config.ini")
 
     plLangDataPath = Config.get('LanguageModule', 'PlLangData')
 

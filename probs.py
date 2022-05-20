@@ -7,7 +7,14 @@ import json
 
 class Probs:
 
-    def __init__(self, plText, enText):
+    def __init__(self, plText, enText, allPlWords=None, allEnWords=None, fert=None, dist=None, trans=None):
+        if (allPlWords is not None):
+            self.allPlWords = allPlWords
+            self.allEnWords = allEnWords
+            self.fert = fert
+            self.dist = dist
+            self.trans = trans
+            return
 
         self.allPlWords = unique(flatten(plText))
         self.allEnWords = unique(flatten(enText))
@@ -39,6 +46,6 @@ class Probs:
                 if value2 == 0:
                     transCopy.pop(key2)
             self.trans[key] = transCopy
-                    
+
         return json.dumps(self, default=lambda o: o.__dict__,
                           sort_keys=True, indent=4)
